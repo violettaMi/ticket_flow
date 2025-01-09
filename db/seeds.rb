@@ -1,9 +1,16 @@
-# This file should ensure the existence of records required to run the application in every environment (production,
-# development, test). The code here should be idempotent so that it can be executed at any point in every environment.
-# The data can then be loaded with the bin/rails db:seed command (or created alongside the database with db:setup).
-#
-# Example:
-#
-#   ["Action", "Comedy", "Drama", "Horror"].each do |genre_name|
-#     MovieGenre.find_or_create_by!(name: genre_name)
-#   end
+ticket = Ticket.create!(
+  request_number: '12345',
+  sequence_number: 1,
+  request_type: 'Normal',
+  response_time: Time.now + 2.days,
+  primary_service_area_code: 'AREA123',
+  additional_service_area_codes: [ 'AREA456', 'AREA789' ],
+  dig_site_info: 'Sample dig site info'
+)
+
+Excavator.create!(
+  ticket_id: ticket.id,
+  company_name: 'Example Excavator Co.',
+  address: '123 Main Street',
+  crew_on_site: true
+)
