@@ -10,11 +10,9 @@ module CreateTicket
     end
 
     def call
-      ActiveRecord::Base.transaction do # TODO: move to controller layer
-        ticket_form.validate!
-        excavator_form.validate!
+      ticket_form.validate!
 
-        ticket = Ticket.create!(ticket_form.attributes)
+      Ticket.create!(ticket_form.attributes).tap do |ticket|
         CreateExcavator::EntryPoint.call(ticket_id: ticket.id, excavator_params: excavator_form.attributes)
       end
     end

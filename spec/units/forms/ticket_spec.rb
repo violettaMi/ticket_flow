@@ -16,8 +16,13 @@ RSpec.describe Forms::Ticket, type: :model do
   describe 'validations' do
     it { is_expected.to validate_presence_of(:request_number) }
     it { is_expected.to validate_presence_of(:sequence_number) }
+    it { is_expected.to validate_presence_of(:request_type) }
     it { is_expected.to validate_presence_of(:response_time) }
     it { is_expected.to validate_presence_of(:primary_service_area_code) }
+    it { is_expected.to validate_presence_of(:additional_service_area_codes) }
     it { is_expected.to validate_presence_of(:dig_site_info) }
+    it { is_expected.to validate_length_of(:request_number).is_at_most(255) }
+    it { is_expected.to validate_length_of(:request_type).is_at_most(255) }
+    it { is_expected.to validate_length_of(:primary_service_area_code).is_at_most(255) }
   end
 end

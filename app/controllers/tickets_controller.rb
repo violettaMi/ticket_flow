@@ -7,7 +7,7 @@ class TicketsController < ApplicationController
     @ticket = Ticket.includes(:excavator).find(params[:id])
   end
 
-  def create
-    # TODO: add api tickets controller and call CreateTicket entry point
+  def map
+    # print map
   end
 end
