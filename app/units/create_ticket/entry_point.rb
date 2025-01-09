@@ -1,19 +1,26 @@
 module CreateTicket
   class EntryPoint
-    def self.call(params:)
-      new(params: params).call
+    def self.call(ticket_params:, excavator_params:)
+      new(ticket_params: ticket_params, excavator_params: excavator_params).call
     end
 
-    attr_reader :form
-
-    def initialize(params:)
-      @form = Forms::Ticket.new(params)
+    def initialize(ticket_params:, excavator_params:)
+      @ticket_form = Forms::Ticket.new(ticket_params)
+      @excavator_form = Forms::Excavator.new(excavator_params)
     end
 
     def call
-      form.validate!
+      ActiveRecord::Base.transaction do # TODO: move to controller layer
+        ticket_form.validate!
+        excavator_form.validate!
 
-      Ticket.create!(form.attributes)
+        ticket = Ticket.create!(ticket_form.attributes)
+        CreateExcavator::EntryPoint.call(ticket_id: ticket.id, excavator_params: excavator_form.attributes)
+      end
     end
+
+    private
+
+    attr_reader :ticket_form, :excavator_form
   end
 end

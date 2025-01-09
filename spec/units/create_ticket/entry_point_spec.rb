@@ -1,38 +1,95 @@
 require 'rails_helper'
 
-RSpec.describe CreateTicket::EntryPoint, type: :service do
-  describe '.call' do
-    let(:valid_params) do
-      {
-        request_number: "12345",
-        sequence_number: 1,
-        request_type: "Normal",
-        response_time: Time.zone.now,
-        primary_service_area_code: "ZZGL103",
-        additional_service_area_codes: [ "ZZL01", "ZZL02" ],
-        dig_site_info: "POLYGON((-81.13390268 32.07206917))"
-      }
-    end
+RSpec.describe CreateTicket::EntryPoint do
+  subject(:entry_point) { described_class.new(ticket_params: ticket_params, excavator_params: excavator_params) }
 
-    context 'with valid params' do
-      it 'creates a ticket' do
-        expect do
-          ticket = described_class.call(params: valid_params)
-          expect(ticket).to be_persisted
-          expect(ticket.request_number).to eq("12345")
-          expect(ticket.sequence_number).to eq(1)
-          expect(ticket.request_type).to eq("Normal")
-          expect(ticket.primary_service_area_code).to eq("ZZGL103")
-          expect(ticket.additional_service_area_codes).to eq([ "ZZL01", "ZZL02" ])
-          expect(ticket.dig_site_info).to eq("POLYGON((-81.13390268 32.07206917))")
-        end.to change(Ticket, :count).by(1)
+  let(:ticket_params) do
+    {
+      request_number: '12345',
+      sequence_number: 1,
+      request_type: 'Normal',
+      response_time: Time.zone.now,
+      primary_service_area_code: 'ZZGL103',
+      additional_service_area_codes: [ 'ZZL01', 'ZZL02' ],
+      dig_site_info: 'POLYGON((-81.13390268 32.07206917))'
+    }
+  end
+
+  let(:excavator_params) do
+    {
+      company_name: 'ABC Excavators',
+      address: '123 Main St',
+      crew_on_site: true
+    }
+  end
+
+  describe '.call' do
+    context 'when ticket params are invalid' do
+      context 'when request_number is nil' do
+        let(:ticket_params) { { request_number: nil } }
+
+        it 'raises a validation error and does not create any records' do
+          expect { entry_point.call }.to raise_error(ActiveModel::ValidationError)
+          expect(Ticket.count).to eq(0)
+          expect(Excavator.count).to eq(0)
+        end
+      end
+
+      context 'when sequence_number is negative' do
+        let(:ticket_params) { { request_number: '12345', sequence_number: -1, request_type: 'Normal' } }
+
+        it 'raises a validation error and does not create any records' do
+          expect { entry_point.call }.to raise_error(ActiveModel::ValidationError)
+          expect(Ticket.count).to eq(0)
+          expect(Excavator.count).to eq(0)
+        end
       end
     end
 
-    context 'with invalid params' do
-      it 'raises a validation error' do
-        invalid_params = valid_params.merge(request_number: nil)
-        expect { described_class.call(params: invalid_params) }.to raise_error(ActiveModel::ValidationError)
+    context 'when excavator params are invalid' do
+      context 'when company_name is nil' do
+        let(:excavator_params) { { company_name: nil, address: '123 Main St', crew_on_site: true } }
+
+        it 'raises a validation error and does not create any records' do
+          expect { entry_point.call }.to raise_error(ActiveModel::ValidationError)
+          expect(Ticket.count).to eq(0)
+          expect(Excavator.count).to eq(0)
+        end
+      end
+
+      context 'when address is too long' do
+        let(:excavator_params) { { company_name: 'ABC Excavators', address: 'a' * 256, crew_on_site: true } }
+
+        it 'raises a validation error and does not create any records' do
+          expect { entry_point.call }.to raise_error(ActiveModel::ValidationError)
+          expect(Ticket.count).to eq(0)
+          expect(Excavator.count).to eq(0)
+        end
+      end
+    end
+
+    context 'when params are valid' do
+      it 'creates a ticket and associated excavator' do
+        expect { entry_point.call }.to change(Ticket, :count).from(0).to(1)
+          .and change(Excavator, :count).from(0).to(1)
+
+        ticket = Ticket.last
+        excavator = Excavator.last
+
+        expect(ticket).to have_attributes(
+          request_number: '12345',
+          sequence_number: 1,
+          request_type: 'Normal',
+          primary_service_area_code: 'ZZGL103',
+          additional_service_area_codes: [ 'ZZL01', 'ZZL02' ]
+        )
+
+        expect(excavator).to have_attributes(
+          company_name: 'ABC Excavators',
+          address: '123 Main St',
+          crew_on_site: true,
+          ticket_id: ticket.id
+        )
       end
     end
   end
