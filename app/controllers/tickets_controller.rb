@@ -5,9 +5,19 @@ class TicketsController < ApplicationController
 
   def show
     @ticket = Ticket.includes(:excavator).find(params[:id])
+
+    @polygon_coords = parse_wkt_polygon(@ticket.dig_site_info)
   end
 
-  def map
-    # print map
+
+  private
+
+  def parse_wkt_polygon(wkt)
+    coords = wkt.match(/POLYGON\(\((.*)\)\)/)[1]
+
+    coords.split(",").map do |pair|
+      lng, lat = pair.split.map(&:to_f)
+      [ lat, lng ]
+    end
   end
 end

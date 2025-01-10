@@ -6,6 +6,6 @@ FactoryBot.define do
     response_time { '2011-07-13 23:59:59' }
     primary_service_area_code { 'ZZGL103' }
     additional_service_area_codes { %w[ZZL01 ZZL02] }
-    dig_site_info { 'POLYGON((-81.13390268 32.07206917))' }
+    dig_site_info { "POLYGON((30.1 10.1, 40.2 40.2, 20.3 40.3, 10.4 20.4, 30.1 10.1))" }
   end
 end

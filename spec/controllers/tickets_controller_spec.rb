@@ -19,7 +19,8 @@ RSpec.describe TicketsController, type: :controller do
   end
 
   describe 'GET #show' do
-    let(:ticket) { create(:ticket) }
+    let(:dig_site_info) { 'POLYGON((30.1 10.1, 40.2 20.2, 20.3 30.3, 10.4 40.4, 30.1 10.1))' }
+    let(:ticket) { create(:ticket, dig_site_info: dig_site_info) }
     let!(:excavator) { create(:excavator, ticket: ticket) }
 
     it 'assigns @ticket and @excavator' do
@@ -27,6 +28,18 @@ RSpec.describe TicketsController, type: :controller do
 
       expect(assigns(:ticket)).to eq(ticket)
       expect(assigns(:ticket).excavator).to eq(excavator)
+    end
+
+    it 'assigns @polygon_coords correctly' do
+      get :show, params: { id: ticket.id }
+
+      expect(assigns(:polygon_coords)).to eq([
+        [ 10.1, 30.1 ],
+        [ 20.2, 40.2 ],
+        [ 30.3, 20.3 ],
+        [ 40.4, 10.4 ],
+        [ 10.1, 30.1 ]
+      ])
     end
 
     it 'renders the show template' do

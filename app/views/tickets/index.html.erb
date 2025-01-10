@@ -27,8 +27,8 @@
           <td><%= ticket.primary_service_area_code %></td>
           <td><%= ticket.additional_service_area_codes.join(", ") %></td>
           <td><%= ticket.dig_site_info %></td>
-          <td><%= ticket.excavator&.company_name || 'N/A' %></td>
-          <td><%= ticket.excavator&.address || 'N/A' %></td>
+          <td><%= ticket.excavator&.company_name %></td>
+          <td><%= ticket.excavator&.address %></td>
           <td><%= ticket.excavator&.crew_on_site ? 'Yes' : 'No' %></td>
           <td><%= link_to 'Show', ticket_path(ticket) %></td>
         </tr>
