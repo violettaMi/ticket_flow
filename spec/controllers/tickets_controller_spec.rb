@@ -16,6 +16,28 @@ RSpec.describe TicketsController, type: :controller do
 
       expect(assigns(:tickets)).to eq(tickets.sort_by(&:created_at).reverse)
     end
+
+    context 'when paginated' do
+      let!(:tickets) { create_list(:ticket, 50) }
+
+      it 'returns the first page with default per-page limit' do
+        get :index, params: { page: 1 }
+
+        expect(assigns(:tickets).count).to eq(30)
+      end
+
+      it 'returns the second page with remaining tickets' do
+        get :index, params: { page: 2 }
+
+        expect(assigns(:tickets).count).to eq(20)
+      end
+
+      it 'returns an empty array if the page is out of bounds' do
+        get :index, params: { page: 3 }
+
+        expect(assigns(:tickets)).to be_empty
+      end
+    end
   end
 
   describe 'GET #show' do

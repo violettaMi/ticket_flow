@@ -1,6 +1,6 @@
 class TicketsController < ApplicationController
   def index
-    @tickets = Ticket.includes(:excavator).order(created_at: :desc)
+    @tickets = Ticket.includes(:excavator).order(created_at: :desc).page(params[:page]).per(30)
   end
 
   def show

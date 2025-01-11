@@ -23,7 +23,7 @@ module Api
         request_type: dig_param(:RequestType),
         response_time: params.dig(:DateTimes, :ResponseDueDateTime),
         primary_service_area_code: params.dig(:ServiceArea, :PrimaryServiceAreaCode, :SACode),
-        additional_service_area_codes: Array(params.dig(:ServiceArea, :AdditionalServiceAreaCodes, :SACode)),
+        additional_service_area_codes: additional_service_area_codes,
         dig_site_info: params.dig(:DigsiteInfo, :WellKnownText)
       }
     end
@@ -34,6 +34,10 @@ module Api
         address: full_address,
         crew_on_site: to_boolean(params.dig(:Excavator, :CrewOnsite))
       }
+    end
+
+    def additional_service_area_codes
+      Array(params.dig(:ServiceArea, :AdditionalServiceAreaCodes, :SACode)).presence || []
     end
 
     def full_address
