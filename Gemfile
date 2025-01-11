@@ -11,6 +11,7 @@ gem "jbuilder"
 gem "tzinfo-data", platforms: %i[ windows jruby ]
 gem "bootsnap", require: false
 gem "kaminari"
+gem "rails_12factor", group: :production
 
 
 group :development, :test do
