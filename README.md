@@ -1,10 +1,11 @@
 # TicketFlow Application
 
 A web-based application to manage and track tickets for various requests, including their excavation details. This application allows users to create and view tickets, including functionality for presenting excavation data on a map.
+The application is hosted on render.com: https://ticket-flow-841f.onrender.com/tickets
 
 ## Features
 
-- **Create Ticket**: Submit a new ticket with required fields.
+- **Create Ticket**: Via  HTTP POST request containing a JSON string once the API is called from outside of the application.
 - **View Tickets**: Retrieve a list of tickets and view detailed information within excavator data.
 - **View Ticket**: Retrieve an individual ticket within excavation map.
 - **Pagination**: Paginate the list of tickets to improve browsing experience.
@@ -58,7 +59,7 @@ To run this application locally, you will need the following:
     ```bash
     rails assets:precompile
     ```
-    
+
 6. Start the Rails server:
     ```bash
     rails server
@@ -136,12 +137,6 @@ The application exposes the following API endpoints:
       "updated_at": "2025-01-11T13:21:42.000Z"
     }
     ```
-  - **Failure (404)**: If the ticket does not exist:
-    ```json
-    {
-      "errors": ["Ticket not found"]
-    }
-    ```
 
 ## Testing
 
@@ -157,34 +152,58 @@ The application uses **RSpec** for testing. Follow the steps below to run tests:
     bundle exec rspec
     ```
 
-### Testing TicketsController
+### Testing Controllers
 
-#### Testing Ticket Creation
+#### Testing Ticket Creation (requests/api spec)
 
 Ensure that the `POST /api/tickets` endpoint properly creates a new ticket and a new excavator. In case of missing fields, the controller should return appropriate error messages.
 
-#### Testing Ticket Index
+#### Testing Ticket Index (controllers spec)
 
-The `GET /tickets` should return a paginated list of tickets. Ensure the order of tickets returned is by creation date (latest first).
+The `tickets#index` presents a paginated list of tickets. Ensure the order of tickets returned is by creation date (latest first).
 
-#### Testing Ticket Show
+#### Testing Ticket Show (controllers spec)
 
-The `GET /tickets/:id` should return the details of a specific ticket, including the excavator and dig site info.
+The `tickets#show` presents the details of a specific ticket, including the excavator data and dig site info polygon data within a map.
 
 ### Example Tests:
 
 ```ruby
-RSpec.describe TicketsController, type: :controller do
-  describe 'POST #create' do
+RSpec.describe 'Api::TicketsController', type: :request do
+  let(:valid_params) do
+    {
+      RequestNumber: '123456',
+      SequenceNumber: '1',
+      RequestType: 'Normal',
+      DateTimes: {
+        ResponseDueDateTime: '2025-01-11T12:00:00Z'
+      },
+      ServiceArea: {
+        PrimaryServiceAreaCode: { SACode: 'ZZGL103' },
+        AdditionalServiceAreaCodes: { SACode: [ 'ZZL01', 'ZZL02' ] }
+      },
+      DigsiteInfo: {
+        WellKnownText: 'POLYGON((-81.13390268058475 32.07206917625161, -81.14660562247929 32.04064386441295))'
+      },
+      Excavator: {
+        CompanyName: 'John Doe Construction',
+        Address: '123 Main St',
+        City: 'Savannah',
+        State: 'GA',
+        Zip: '31401',
+        CrewOnsite: 'true'
+      }
+    }
+  end
+  
+  describe 'POST /api/tickets' do
     context 'with valid parameters' do
-      it 'creates a new ticket' do
-        valid_params = { request_number: '1234', request_type: 'Normal', dig_site_info: 'POLYGON((...))' }
-        post :create, params: valid_params, as: :json
+      it 'creates a ticket and returns ticket_id' do
+        post '/api/tickets', params: valid_params, as: :json
 
         expect(response).to have_http_status(:created)
-
         json = JSON.parse(response.body)
-        expect(json['ticket_id']).to be_present
+        expect(json).to include('ticket_id')
       end
     end
   end
